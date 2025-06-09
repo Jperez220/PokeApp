@@ -1,0 +1,112 @@
+﻿@model PokeApi.Models.PokemonFilterViewModel
+
+<h1 class="text-center my-4">Listado de Pokémon</h1>
+
+<form method="get" asp-action="Index" asp-controller="Pokemon" class="row mb-4">
+    <div class="row">
+        <div class="col-12 col-md-5">
+        </div>
+        <div class="col-12 col-md-5 mb-3">
+            <input type="text" name="nombreFiltro" value="@Model.NombreFiltro" class="form-control" placeholder="Filtrar por nombre" />
+        </div>
+        <div class="col-12 col-md-2 mb-3">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </div>
+</form>
+
+@if (Model.Pokemones == null || !Model.Pokemones.Any())
+{
+    <div class="alert alert-warning text-center">No hay pokémon para mostrar.</div>
+}
+else
+{
+    <div class="container">
+
+        <div class="text-end mb-3">
+            <a asp-action="ExportarExcel" class="btn btn-success">
+                Exportar a Excel
+            </a>
+        </div>
+
+        <div class="row">
+            @foreach (var pokemon in Model.Pokemones)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm pokemon-card">
+                        <img src="@pokemon.ImageUrl"
+                             class="card-img-top pokemon-img"
+                             alt="@pokemon.Name"
+                             style="height: 200px; object-fit: contain; cursor: pointer;"
+                             data-bs-toggle="modal"
+                             data-bs-target="#pokemonModal"
+                             data-nombre="@pokemon.Name"
+                             data-imagen="@pokemon.ImageUrl"
+                             />
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-capitalize">@pokemon.Name</h5>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <nav>
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= Model.TotalPaginas; i++)
+                {
+                    <li class="page-item @(Model.PaginaActual == i ? "active" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-page="@i"
+                           asp-route-nombreFiltro="@Model.NombreFiltro"
+                           asp-route-especieFiltro="@Model.EspecieFiltro">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+}
+
+<!-- Modal -->
+<div class="modal fade" id="pokemonModal" tabindex="-1" aria-labelledby="pokemonModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pokemonModalLabel">Detalles del Pokémon</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalPokemonImg" src="" class="img-fluid mb-3" style="max-height: 250px;" />
+                <h4 id="modalPokemonNombre"></h4>
+                <p id="modalPokemonEspecie" class="text-muted"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const modal = document.getElementById('pokemonModal');
+        modal.addEventListener('show.bs.modal', function (event) {
+            const img = event.relatedTarget;
+            const nombre = img.getAttribute('data-nombre');
+            const imagen = img.getAttribute('data-imagen');
+            const especie = img.getAttribute('data-especie');
+
+            document.getElementById('modalPokemonImg').src = imagen;
+            document.getElementById('modalPokemonNombre').textContent = nombre;
+            document.getElementById('modalPokemonEspecie').textContent = especie;
+        });
+
+        // Efecto hover a las tarjetas
+        document.querySelectorAll('.pokemon-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'scale(1.03)';
+                card.style.transition = 'transform 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+}
